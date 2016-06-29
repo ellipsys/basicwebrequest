@@ -53,8 +53,9 @@ function Invoke-BasicWebRequest {
                 Write-Verbose "Established proxy URL to $ProxyURL and using default credentials"
             }
             else {
-                if (!$ProxyDomain) { $request.Credentials = New-Object System.Net.NetworkCredential($ProxyUser, $ProxyPassword); }
-                else { $request.Credentials = New-Object System.Net.NetworkCredential($ProxyUser, $ProxyPassword, $ProxyDomain); }
+                $ProxyPassword = ConvertTo-SecureString $ProxyPassword -AsPlainText -Force;
+                $proxy.Credentials = New-Object System.Management.Automation.PSCredential ($ProxyUser, $ProxyPassword);
+
                 Write-Verbose "Established proxy URL to $ProxyURL and using $ProxyUser credentials"
             }
         }
