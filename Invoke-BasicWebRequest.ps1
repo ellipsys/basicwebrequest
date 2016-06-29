@@ -15,7 +15,23 @@ function Invoke-BasicWebRequest {
 
         [Parameter(Mandatory=$false)]
         [String]
-        $ProxyURL
+        $ProxyURL,
+
+        [Parameter(Mandatory=$false)]
+        [String]
+        $ProxyUser,
+
+        [Parameter(Mandatory=$false)]
+        [String]
+        $ProxyPassword,
+
+        [Parameter(Mandatory=$false)]
+        [String]
+        $ProxyDomain,
+
+        [Parameter(Mandatory=$false)]
+        [Switch]
+        $ProxyDefaultCredentials
     )
 
     # Ensure URL contains a 'http' protocol:
@@ -25,11 +41,24 @@ function Invoke-BasicWebRequest {
     $request.UserAgent = $UserAgent
     $request.Accept = "*/*"
 
+    # Proxy settings
     if ($ProxyURL) { 
         $proxy = New-Object System.Net.WebProxy
         $proxy.Address = $ProxyURL
         $request.Proxy = $proxy
-        Write-Verbose "Established proxy URL to $ProxyURL"
+
+        if ($ProxyUser) {
+            if ($ProxyDefaultCredentials) {
+                $request.UseDefaultCredentials = $true
+                Write-Verbose "Established proxy URL to $ProxyURL and using default credentials"
+            }
+            else {
+                if (!$ProxyDomain) { $request.Credentials = New-Object System.Net.NetworkCredential($ProxyUser, $ProxyPassword); }
+                else { $request.Credentials = New-Object System.Net.NetworkCredential($ProxyUser, $ProxyPassword, $ProxyDomain); }
+                Write-Verbose "Established proxy URL to $ProxyURL and using $ProxyUser credentials"
+            }
+        }
+        else { Write-Verbose "Established proxy URL to $ProxyURL" }
     }
 
     try {
