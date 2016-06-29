@@ -32,6 +32,7 @@ function Invoke-BasicWebRequest {
 
     # Ensure URLs contains at least an 'http' protocol:
     if (-not ($URL -match "http")) { $URL = 'http://'+$URL }
+    if (($ProxyURL) -and (-not ($ProxyURL -match "http"))) { $ProxyURL = 'http://'+$ProxyURL }
 
     $request = [System.Net.WebRequest]::Create($URL)
     $request.UserAgent = $UserAgent
