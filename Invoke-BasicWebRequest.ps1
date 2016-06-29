@@ -26,10 +26,6 @@ function Invoke-BasicWebRequest {
         $ProxyPassword,
 
         [Parameter(Mandatory=$false)]
-        [String]
-        $ProxyDomain,
-
-        [Parameter(Mandatory=$false)]
         [Switch]
         $ProxyDefaultCredentials
     )
