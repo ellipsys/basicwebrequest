@@ -3,7 +3,7 @@ function Invoke-BasicWebRequest {
     [OutputType([psobject])]
     param(
         [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
+                   ValueFromPipeline=$true,
                    Position=0)]
         [ValidateNotNullOrEmpty()]
         [String]
@@ -30,7 +30,7 @@ function Invoke-BasicWebRequest {
         $ProxyDefaultCredentials
     )
 
-    # Ensure URL contains a 'http' protocol:
+    # Ensure URLs contains at least an 'http' protocol:
     if (-not ($URL -match "http")) { $URL = 'http://'+$URL }
 
     $request = [System.Net.WebRequest]::Create($URL)
@@ -49,8 +49,8 @@ function Invoke-BasicWebRequest {
                 Write-Verbose "Established proxy URL to $ProxyURL and using default credentials"
             }
             else {
-                $ProxyPassword = ConvertTo-SecureString $ProxyPassword -AsPlainText -Force;
-                $proxy.Credentials = New-Object System.Management.Automation.PSCredential ($ProxyUser, $ProxyPassword);
+                $secure_password    = ConvertTo-SecureString $ProxyPassword -AsPlainText -Force;
+                $proxy.Credentials  = New-Object System.Management.Automation.PSCredential ($ProxyUser, $secure_password);
 
                 Write-Verbose "Established proxy URL to $ProxyURL and using $ProxyUser credentials"
             }
