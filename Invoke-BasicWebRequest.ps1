@@ -11,13 +11,30 @@ function Invoke-BasicWebRequest {
 
         [Parameter(Mandatory=$false)]
         [String]
-        $UserAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko'
+        $UserAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
+
+        [Parameter(Mandatory=$false)]
+        [String]
+        $ProxyURL
     )
+
+    # Ensure URL contains a 'http' protocol:
+    if (-not ($URL -match "http")) { $URL = 'http://'+$URL }
 
     $request = [System.Net.WebRequest]::Create($URL)
     $request.UserAgent = $UserAgent
     $request.Accept = "*/*"
+
+    if ($ProxyURL) { 
+        $proxy = New-Object System.Net.WebProxy
+        $proxy.Address = $ProxyURL
+        $request.Proxy = $proxy
+        Write-Verbose "Established proxy URL to $ProxyURL"
+    }
+
     try {
+        Write-Verbose "Trying to get $URL"
+
         $response               = $request.GetResponse()
         $response_stream        = $response.GetResponseStream();
         $response_stream_reader = New-Object System.IO.StreamReader $response_stream;
@@ -30,12 +47,12 @@ function Invoke-BasicWebRequest {
         $out
     }
     catch {
-        $response = $_.Exception.Response
-        $response_status_code = [int](([regex]::Match($_.Exception.InnerException,"\b\d{3}\b")).value)
+        $response = $_.Exception.InnerException
+        $response_status_code = [int](([regex]::Match($_.Exception.InnerException,"\((?<status_code>\d{3})\)")).groups["status_code"].value)
 
         $out = New-Object -TypeName PSObject
         $out | Add-Member -MemberType NoteProperty -Name StatusCode -Value $response_status_code
-        $out | Add-Member -MemberType NoteProperty -Name Content -Value $null
+        $out | Add-Member -MemberType NoteProperty -Name Content -Value $response
         $out
     }
 }
