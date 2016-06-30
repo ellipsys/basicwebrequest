@@ -1,4 +1,65 @@
 function Invoke-BasicWebRequest {
+    <#
+
+    .SYNOPSIS
+        Basic and simple HTTP GET WebRequest. Very similar (but simplest) version of Invoke-WebRequest, which is only available in PowerShell v3+.
+
+    .PARAMETER URL
+        [String], required=true, ValueFromPipeline=$true
+
+        URL to download. e.g.: google.com
+
+    .PARAMETER UserAgent
+        [String], required=false
+
+        User-Agent custom string. By default it will use 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko'
+
+    .PARAMETER ProxyURL
+        [String], required=false
+
+        Proxy IP with optional port. E.g.: proxy.domain.corp:8080
+
+    .PARAMETER ProxyUser
+        [String], required=false
+
+        Proxy user.
+
+    .PARAMETER ProxyPassword
+        [String], required=false
+
+        Proxy user password.
+
+    .PARAMETER ProxyDefaultCredentials
+        [Switch], required=false
+
+        Specify that proxy credential will be the default one.
+
+    .OUTPUTS
+        [PSObject]
+
+        StatusCode Content
+        ---------- -------
+               200 <!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="es"><head><meta content="IE=edge" http-equiv="X-UA-Co...
+
+    .EXAMPLE
+        PS C:\> . .\Invoke-BasicWebRequest.ps1
+        PS C:\> Invoke-BasicWebRequest google.com
+
+        StatusCode Content
+        ---------- -------
+               200 <!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="es"><head><meta content="IE=edge" http-equiv="X-UA-Co...
+
+    .EXAMPLE
+        PS C:\> . .\Invoke-BasicWebRequest.ps1
+        PS C:\> Invoke-BasicWebRequest google.com -ProxyURL proxy:8080 -ProxyUser pperez -ProxyPassword P@ssword!
+
+        StatusCode Content
+        ---------- -------
+               200 <!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="es"><head><meta content="IE=edge" http-equiv="X-UA-Co...
+    .LINK
+        https://github.com/daniel0x00/basicwebrequest
+
+    #>
     [CmdletBinding()]
     [OutputType([psobject])]
     param(
@@ -44,19 +105,17 @@ function Invoke-BasicWebRequest {
         $proxy.Address = $ProxyURL
         $request.Proxy = $proxy
 
-        if ($ProxyUser) {
-            if ($ProxyDefaultCredentials) {
-                $request.UseDefaultCredentials = $true
-                Write-Verbose "Established proxy URL to $ProxyURL and using default credentials"
-            }
-            else {
-                $secure_password    = ConvertTo-SecureString $ProxyPassword -AsPlainText -Force;
-                $proxy.Credentials  = New-Object System.Management.Automation.PSCredential ($ProxyUser, $secure_password);
-
-                Write-Verbose "Established proxy URL to $ProxyURL and using $ProxyUser credentials"
-            }
+        if ($ProxyDefaultCredentials) {
+            $request.UseDefaultCredentials = $true
+            Write-Verbose "Using default proxy credentials"
         }
-        else { Write-Verbose "Established proxy URL to $ProxyURL" }
+        elseif ($ProxyUser) {
+            $secure_password    = ConvertTo-SecureString $ProxyPassword -AsPlainText -Force;
+            $proxy.Credentials  = New-Object System.Management.Automation.PSCredential ($ProxyUser, $secure_password);
+
+            Write-Verbose "Using $ProxyUser proxy credentials"
+        }
+        else { Write-Verbose "Using proxy $ProxyURL" }
     }
 
     try {
